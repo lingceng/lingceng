@@ -1,0 +1,44 @@
+name: Sync Profile README to Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - README.md
+      - .github/workflows/sync-profile-readme-to-pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+
+      - name: Sync README.md to lingceng.github.io/index.md
+        env:
+          PAGES_SYNC_TOKEN: ${{ secrets.PAGES_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git clone "https://x-access-token:${PAGES_SYNC_TOKEN}@github.com/lingceng/lingceng.github.io.git" target-repo
+          cp README.md target-repo/index.md
+
+          cd target-repo
+
+          if [[ -z "$(git status --short)" ]]; then
+            echo "No changes to publish."
+            exit 0
+          fi
+
+          git add index.md
+          git commit -m "同步 README 到 GitHub Pages 首页"
+          git push origin HEAD:main
