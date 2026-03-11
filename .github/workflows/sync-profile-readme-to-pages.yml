@@ -14,7 +14,6 @@ permissions:
 
 jobs:
   sync:
-    if: ${{ secrets.PAGES_SYNC_TOKEN != '' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +25,11 @@ jobs:
           PAGES_SYNC_TOKEN: ${{ secrets.PAGES_SYNC_TOKEN }}
         run: |
           set -euo pipefail
+
+          if [[ -z "${PAGES_SYNC_TOKEN:-}" ]]; then
+            echo "PAGES_SYNC_TOKEN is not set. Skip publishing."
+            exit 0
+          fi
 
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
